@@ -1,5 +1,9 @@
+import PoseDetection from "./PoseDetection"
+
 const App = () => {
-  return <div className="flex justify-center bg-gray-300">Hello, world</div>
+  return <div>
+    <PoseDetection />
+  </div>
 }
 
 export default App
