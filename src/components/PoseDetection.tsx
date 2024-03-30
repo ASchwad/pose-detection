@@ -138,14 +138,14 @@ const PoseDetection: React.FC = () => {
   return (
     <>
       <video
-        className="absolute inset-0"
+        className="absolute inset-20"
         width="640"
         height="480"
         ref={videoRef}
         autoPlay
       />
       <canvas
-        className="absolute inset-0"
+        className="absolute inset-20"
         width="640"
         height="480"
         ref={canvasRef}
