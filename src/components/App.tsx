@@ -1,5 +1,5 @@
 import PoseDetection from './PoseDetection'
-import StaticPose from './StaticPose'
+import StaticPoseDetector from './StaticPoseDetector'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 const App = () => {
@@ -14,7 +14,7 @@ const App = () => {
           <PoseDetection />
         </TabsContent>
         <TabsContent value="static">
-          <StaticPose />
+          <StaticPoseDetector />
         </TabsContent>
       </Tabs>
     </div>

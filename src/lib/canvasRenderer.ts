@@ -23,6 +23,10 @@ export const drawKeypoint = (
 
     ctx.beginPath()
     circle.arc(keypoint.x, keypoint.y, 10, 0, 2 * Math.PI)
+    // show tooltip on hover on keypoint with its name
+    ctx.font = '16px Arial'
+    ctx.fillText(keypoint.name!, keypoint.x, keypoint.y)
+
     ctx.fill(circle)
   }
 }

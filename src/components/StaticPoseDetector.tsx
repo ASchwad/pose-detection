@@ -9,8 +9,10 @@ import {
 import { drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
 // impprt example_keypoints.json
 import exampleKeypoints from './example_plank_keypoints.json'
+import ImageUploadComponent from './ImageUploader'
+import ImageUploader from './ImageUploader'
 
-const StaticPose: React.FC = () => {
+const StaticPoseDetector: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const StaticPose: React.FC = () => {
 
   return (
     <>
+      <ImageUploader />
       <canvas
         className="absolute inset-20"
         width="640"
@@ -44,4 +47,4 @@ const StaticPose: React.FC = () => {
   )
 }
 
-export default StaticPose
+export default StaticPoseDetector
