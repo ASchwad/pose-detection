@@ -6,10 +6,9 @@ import {
   util,
   createDetector
 } from '@tensorflow-models/pose-detection'
-import { isPlank } from '../lib/poseCalculations'
 import { drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
 
-const PoseDetection: React.FC = () => {
+const LivePoseDetector: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null) // Annotate with the type
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -24,7 +23,6 @@ const PoseDetection: React.FC = () => {
 
         // Get access to the webcam
         const video = videoRef.current
-        console.log('Video', video)
         const width = 640
         const height = 480
 
@@ -112,4 +110,4 @@ const PoseDetection: React.FC = () => {
   )
 }
 
-export default PoseDetection
+export default LivePoseDetector

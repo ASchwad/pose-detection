@@ -12,6 +12,11 @@ export const drawKeypoint = (
   const score = keypoint.score != null ? keypoint.score : 1
   const scoreThreshold = 0.3
 
+  const ignoredKeypoints = ['left_eye', 'right_eye', 'left_ear', 'right_ear']
+  if (ignoredKeypoints.includes(keypoint.name!)) {
+    return
+  }
+
   if (score >= scoreThreshold) {
     const circle = new Path2D()
     ctx.fillStyle = 'red'
@@ -22,7 +27,7 @@ export const drawKeypoint = (
     }
 
     ctx.beginPath()
-    circle.arc(keypoint.x, keypoint.y, 10, 0, 2 * Math.PI)
+    circle.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI)
     // show tooltip on hover on keypoint with its name
     ctx.font = '16px Arial'
     ctx.fillText(keypoint.name!, keypoint.x, keypoint.y)

@@ -1,17 +1,17 @@
-import PoseDetection from './PoseDetection'
+import LivePoseDetector from './LivePoseDetector'
 import StaticPoseDetector from './StaticPoseDetector'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 
 const App = () => {
   return (
-    <div>
+    <div className="m-5">
       <Tabs defaultValue="static" className="w-[400px]">
         <TabsList>
           <TabsTrigger value="detection">Detection</TabsTrigger>
           <TabsTrigger value="static">Static</TabsTrigger>
         </TabsList>
         <TabsContent value="detection">
-          <PoseDetection />
+          <LivePoseDetector />
         </TabsContent>
         <TabsContent value="static">
           <StaticPoseDetector />
