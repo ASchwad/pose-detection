@@ -45,6 +45,29 @@ export function filterKeypoints(
   })
 }
 
+export function calculateIsBackStraight(
+  shoulder: Keypoint,
+  hip: Keypoint
+): boolean {
+  // Calculated as Slope - incline or decline shouldnt be more than the treshold
+  const threshold = 0.15
+  return Math.abs(calculateSlope(shoulder!, hip!) || 999) < threshold
+}
+
+export function calculateIsElbowAngleInThreshhold(
+  shoulder: Keypoint,
+  elbow: Keypoint,
+  hip: Keypoint
+): boolean {
+  // check if elbows are aligned with shoulders
+  const elbowAngle = calculateAngle(shoulder!, elbow!, hip!)
+  const elbowAngleDeviation = Math.abs(90 - elbowAngle)
+  // allowed degree deviation
+  const elbowAngleThreshold = 25
+
+  return Math.abs(elbowAngleDeviation) < elbowAngleThreshold
+}
+
 export function calculateAngle(
   middlePoint: Keypoint,
   point2: Keypoint,

@@ -7,8 +7,8 @@ import { drawAngle, drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
 
 import ImageUploader from './ImageUploader'
 import {
-  areJointsAligned,
-  calculateAngle,
+  calculateIsBackStraight,
+  calculateIsElbowAngleInThreshhold,
   estimateBodyPositionToCamera,
   filterKeypoints
 } from '@/lib/poseCalculations'
@@ -16,6 +16,8 @@ import {
 const StaticPoseDetector: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [isElbowAligned, setIsElbowAligned] = useState<boolean>(false)
+  const [isBackStraight, setIsBackStraight] = useState<boolean>(false)
 
   useEffect(() => {
     const runPoseDetection = async () => {
@@ -41,7 +43,7 @@ const StaticPoseDetector: React.FC = () => {
                 const position = estimateBodyPositionToCamera(keypoints)
 
                 const filtered_keypoints = filterKeypoints(keypoints, position)
-                console.log(filtered_keypoints)
+
                 ctx.clearRect(0, 0, width, height) // Clear canvas
                 drawSkeleton(ctx, keypoints, model)
                 filtered_keypoints.forEach((keypoint) => {
@@ -62,18 +64,21 @@ const StaticPoseDetector: React.FC = () => {
 
                 drawAngle(shoulder!, hip!, elbow!, ctx)
                 drawAngle(hip!, knee!, shoulder!, ctx)
-                const plankKeypointNames = filtered_keypoints
-                  .map((keypoint) => keypoint.name!)
-                  .filter(
-                    (name) =>
-                      name.includes('shoulder') ||
-                      name.includes('hip') ||
-                      name.includes('knee') ||
-                      name.includes('ankle')
-                  )
-                console.log(
-                  areJointsAligned(filtered_keypoints, plankKeypointNames)
+                // const plankKeypointNames = filtered_keypoints
+                //   .map((keypoint) => keypoint.name!)
+                //   .filter(
+                //     (name) =>
+                //       name.includes('shoulder') ||
+                //       name.includes('hip') ||
+                //       name.includes('knee') ||
+                //       name.includes('ankle')
+                //   )
+
+                setIsElbowAligned(
+                  calculateIsElbowAngleInThreshhold(shoulder!, elbow!, hip!)
                 )
+
+                setIsBackStraight(calculateIsBackStraight(shoulder!, hip!))
                 return null
               }
             }
@@ -98,6 +103,8 @@ const StaticPoseDetector: React.FC = () => {
           />
         )}
         <canvas width="640" height="480" ref={canvasRef} />
+        <p>Elbows are aligned with shoulders: {isElbowAligned.toString()}</p>
+        <p>Back is straight: {isBackStraight.toString()}</p>
       </div>
     </div>
   )
