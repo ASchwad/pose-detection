@@ -1,12 +1,14 @@
 import React, { useRef, useEffect } from 'react'
-import * as tf from '@tensorflow/tfjs-core'
 import {
-  Keypoint,
   SupportedModels,
-  util,
   createDetector
 } from '@tensorflow-models/pose-detection'
-import { drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
+import { drawAngle, drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
+import {
+  areJointsAligned,
+  estimateBodyPositionToCamera,
+  filterKeypoints
+} from '@/lib/poseCalculations'
 
 const LivePoseDetector: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null) // Annotate with the type
@@ -30,8 +32,6 @@ const LivePoseDetector: React.FC = () => {
           video.srcObject = stream
           video.play()
 
-          await tf.ready()
-          console.log('TF Ready')
           createDetector(model, {
             inputResolution: { width, height },
             architecture: 'ResNet50',
@@ -56,6 +56,42 @@ const LivePoseDetector: React.FC = () => {
                       keypoints.forEach((keypoint) => {
                         drawKeypoint(ctx, keypoint)
                       })
+                      console.log(
+                        'Position',
+                        estimateBodyPositionToCamera(keypoints)
+                      )
+
+                      const shoulder = keypoints.find(
+                        (keypoint) => keypoint.name?.includes('shoulder')!
+                      )
+                      const elbow = keypoints.find(
+                        (keypoint) => keypoint.name?.includes('elbow')!
+                      )
+                      const hip = keypoints.find(
+                        (keypoint) => keypoint.name?.includes('hip')!
+                      )
+
+                      const position = estimateBodyPositionToCamera(keypoints)
+
+                      const filtered_keypoints = filterKeypoints(
+                        keypoints,
+                        position
+                      )
+                      console.log(filtered_keypoints)
+
+                      drawAngle(shoulder!, hip!, elbow!, ctx)
+                      const plankKeypointNames = filtered_keypoints
+                        .map((keypoint) => keypoint.name!)
+                        .filter(
+                          (name) =>
+                            name.includes('shoulder') ||
+                            name.includes('hip') ||
+                            name.includes('knee') ||
+                            name.includes('ankle')
+                        )
+                      console.log(
+                        areJointsAligned(filtered_keypoints, plankKeypointNames)
+                      )
                     })
                   }
                 }

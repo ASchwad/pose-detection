@@ -4,9 +4,32 @@ import {
   util
 } from '@tensorflow-models/pose-detection'
 
+export const drawAngle = (
+  point1: Keypoint,
+  point2: Keypoint,
+  point3: Keypoint,
+  ctx: CanvasRenderingContext2D
+) => {
+  const radius = 50
+  const angleStart = Math.atan2(point2.y - point1.y, point2.x - point1.x)
+  const angleEnd = Math.atan2(point3.y - point1.y, point3.x - point1.x)
+  ctx.beginPath()
+  ctx.arc(point1.x, point1.y, radius, angleStart, angleEnd)
+  ctx.stroke()
+
+  // Calculate angle
+  let angle = angleStart - angleEnd
+
+  // Add angle value text
+  const textX = point1.x + radius * Math.cos((angleStart + angleEnd) / 2)
+  const textY = point1.y + radius * Math.sin((angleStart + angleEnd) / 2)
+  ctx.fillText(`${((angle * 180) / Math.PI).toFixed(2)}°`, textX, textY)
+}
+
 export const drawKeypoint = (
   ctx: CanvasRenderingContext2D,
-  keypoint: Keypoint
+  keypoint: Keypoint,
+  showName = false
 ) => {
   // If score is null, just show the keypoint.
   const score = keypoint.score != null ? keypoint.score : 1
@@ -29,9 +52,11 @@ export const drawKeypoint = (
     ctx.beginPath()
     circle.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI)
     // show tooltip on hover on keypoint with its name
-    ctx.font = '16px Arial'
-    ctx.fillText(keypoint.name!, keypoint.x, keypoint.y)
 
+    if (showName) {
+      ctx.font = '16px Arial'
+      ctx.fillText(keypoint.name!, keypoint.x, keypoint.y)
+    }
     ctx.fill(circle)
   }
 }

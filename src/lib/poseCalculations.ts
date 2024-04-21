@@ -1,5 +1,117 @@
 import { Keypoint } from '@tensorflow-models/pose-detection'
 
+enum BodySide {
+  LEFT = 'left',
+  RIGHT = 'right',
+  CENTER = 'center'
+}
+
+export function estimateBodyPositionToCamera(keypoints: Keypoint[]): BodySide {
+  let leftScore = 0
+  let rightScore = 0
+
+  // Sum up the scores for left and right keypoints
+  for (const keypoint of keypoints) {
+    if (keypoint.name!.startsWith('left_')) {
+      leftScore += keypoint.score!
+    } else if (keypoint.name!.startsWith('right_')) {
+      rightScore += keypoint.score!
+    }
+  }
+
+  // Determine the body side based on the sum of scores
+  if (leftScore > rightScore) {
+    return BodySide.LEFT
+  } else if (rightScore > leftScore) {
+    return BodySide.RIGHT
+  } else {
+    return BodySide.CENTER
+  }
+}
+
+// use only keypoints relevant to position
+export function filterKeypoints(
+  keypoints: Keypoint[],
+  bodySide: BodySide
+): Keypoint[] {
+  return keypoints.filter((keypoint) => {
+    if (bodySide === BodySide.LEFT) {
+      return keypoint.name!.startsWith('left_')
+    } else if (bodySide === BodySide.RIGHT) {
+      return keypoint.name!.startsWith('right_')
+    } else {
+      return true
+    }
+  })
+}
+
+export function calculateAngle(
+  middlePoint: Keypoint,
+  point2: Keypoint,
+  point3: Keypoint,
+  angleUnit = 'degree' as 'degree' | 'rad'
+): number {
+  const dx1 = point2.x - middlePoint.x
+  const dy1 = point2.y - middlePoint.y
+  const dx2 = point3.x - middlePoint.x
+  const dy2 = point3.y - middlePoint.y
+
+  const dotProduct = dx1 * dx2 + dy1 * dy2
+  const magnitude1 = Math.sqrt(dx1 * dx1 + dy1 * dy1)
+  const magnitude2 = Math.sqrt(dx2 * dx2 + dy2 * dy2)
+
+  const cosTheta = dotProduct / (magnitude1 * magnitude2)
+
+  if (angleUnit === 'rad') return Math.acos(cosTheta)
+  return Math.acos(cosTheta) * (180 / Math.PI)
+}
+
+export function calculateSlope(
+  point1: Keypoint,
+  point2: Keypoint
+): number | null {
+  if (point1.x === point2.x) {
+    return null // Avoid division by zero
+  }
+  return (point2.y - point1.y) / (point2.x - point1.x)
+}
+
+export function areJointsAligned(
+  keypoints: Keypoint[],
+  jointNames: string[]
+): boolean {
+  const jointPoints: Keypoint[] = jointNames.map(
+    (name) => keypoints.find((point) => point.name === name)!
+  )
+
+  // Calculate slopes for adjacent joints
+  const slopes: number[] = []
+  for (let i = 0; i < jointPoints.length - 1; i++) {
+    const slope = calculateSlope(jointPoints[i], jointPoints[i + 1]) || 0
+    console.log(
+      'Calculating slope for ',
+      jointPoints[i].name,
+      jointPoints[i + 1].name,
+      slope
+    )
+    slopes.push(slope)
+  }
+
+  // Check if slopes are similar
+  const threshold = 0.2 // Adjust as needed based on your requirements
+  const avgSlope =
+    slopes.reduce((acc, slope) => (slope !== null ? acc! + slope! : acc), 0) /
+    slopes.length
+
+  console.log(slopes, avgSlope, threshold)
+  for (const slope of slopes) {
+    if (slope !== null && Math.abs(slope! - avgSlope!) > threshold) {
+      return false
+    }
+  }
+  return true
+}
+
 /*
 Head to left wrist distance (Used points: 0,7)
 Head to right wrist distance (Used points: 0,4)

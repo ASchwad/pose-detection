@@ -1,13 +1,17 @@
 import React, { useRef, useEffect, useState } from 'react'
 import {
   createDetector,
-  Keypoint,
   SupportedModels
 } from '@tensorflow-models/pose-detection'
-import { drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
-import * as tf from '@tensorflow/tfjs-core'
+import { drawAngle, drawKeypoint, drawSkeleton } from '@/lib/canvasRenderer'
 
 import ImageUploader from './ImageUploader'
+import {
+  areJointsAligned,
+  calculateAngle,
+  estimateBodyPositionToCamera,
+  filterKeypoints
+} from '@/lib/poseCalculations'
 
 const StaticPoseDetector: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,9 +23,6 @@ const StaticPoseDetector: React.FC = () => {
       const width = 640
       const height = 480
       const model = SupportedModels.MoveNet
-
-      await tf.ready()
-      console.log('TF Ready')
       createDetector(model, {
         inputResolution: { width, height },
         architecture: 'ResNet50',
@@ -34,15 +35,46 @@ const StaticPoseDetector: React.FC = () => {
 
         detector.estimatePoses(pixelInput).then((poses) => {
           poses.forEach(({ keypoints }) => {
-            console.log(keypoints)
             if (canvas) {
               const ctx = canvas.getContext('2d')
               if (ctx) {
+                const position = estimateBodyPositionToCamera(keypoints)
+
+                const filtered_keypoints = filterKeypoints(keypoints, position)
+                console.log(filtered_keypoints)
                 ctx.clearRect(0, 0, width, height) // Clear canvas
                 drawSkeleton(ctx, keypoints, model)
-                keypoints.forEach((keypoint) => {
+                filtered_keypoints.forEach((keypoint) => {
                   drawKeypoint(ctx, keypoint)
                 })
+                const shoulder = keypoints.find(
+                  (keypoint) => keypoint.name?.includes('shoulder')!
+                )
+                const elbow = keypoints.find(
+                  (keypoint) => keypoint.name?.includes('elbow')!
+                )
+                const hip = keypoints.find(
+                  (keypoint) => keypoint.name?.includes('hip')!
+                )
+                const knee = keypoints.find(
+                  (keypoint) => keypoint.name?.includes('knee')!
+                )
+
+                drawAngle(shoulder!, hip!, elbow!, ctx)
+                drawAngle(hip!, knee!, shoulder!, ctx)
+                const plankKeypointNames = filtered_keypoints
+                  .map((keypoint) => keypoint.name!)
+                  .filter(
+                    (name) =>
+                      name.includes('shoulder') ||
+                      name.includes('hip') ||
+                      name.includes('knee') ||
+                      name.includes('ankle')
+                  )
+                console.log(
+                  areJointsAligned(filtered_keypoints, plankKeypointNames)
+                )
+                return null
               }
             }
           })
